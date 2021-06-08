@@ -127,7 +127,7 @@ contract SmashEggs is OwnableContract{
                 count++;
             }
         }
-        eggToken.burn(amount.mul(1e18));
+        eggToken.burn(amount);
 
         if(count == 0){
             loserFailCount[msg.sender] += amount;
