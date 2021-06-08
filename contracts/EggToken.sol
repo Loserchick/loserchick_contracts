@@ -104,7 +104,7 @@ contract EggToken is ERC20("EGG", "EGG"), OwnableContract{
         require(amount != 0, 'burnAmount cannot be zero');
         
         address deadAddress = 0x000000000000000000000000000000000000dEaD;
-        transferFrom(msg.sender, deadAddress, amount * 1e18);
+        transfer(deadAddress, amount * 1e18);
         emit Burn(msg.sender, amount);
 
         addUpBurnCount += amount;

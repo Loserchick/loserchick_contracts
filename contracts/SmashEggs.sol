@@ -58,7 +58,6 @@ contract SmashEggs is OwnableContract{
         randomContract = RandomInterface(_randomAddr);
 
         eggToken = EggToken(_eggTokenAddr);
-        eggToken.approve(_eggTokenAddr, 115792089237316195423570985008687907853269984665640564039457584007913129639935);
 
         chickProbability = new uint256[](4);
         chickProbability[LUCKY_CHICK_INDEX] = 99377250806863640; // luckyChick  0.00154093611776619 * 1e17 = 154093611776619    622749193136360 = 0.00622749193136360 = 0.62274919313636%
