@@ -35,11 +35,11 @@ contract EggToken is ERC20("EGG", "EGG"), OwnableContract{
         marketPerDayLimit = 100000;
     }
 
-    function setDev1(address _signer) public onlyAdmin {
+    function setDev1(address _signer) public onlyOwner {
         signer1 = _signer;
     }
 
-    function setDev2(address _signer) public onlyAdmin {
+    function setDev2(address _signer) public onlyOwner {
         signer2 = _signer;
     }
 

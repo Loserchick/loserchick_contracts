@@ -11,6 +11,7 @@ contract OwnableContract {
 
     constructor() public {
         owner = msg.sender;
+        admin = msg.sender;
     }
 
     modifier onlyOwner {
