@@ -103,6 +103,11 @@ contract ChickMining is OwnableContract, ReentrancyGuard, IERC721Receiver{
         phaseEndBlockNumberArray[_phaseIndex] = _endBlockNumber;
     }
 
+    function addMiningPhase(uint256 _phaseEndBlockNumber, uint256 _phasePerBlockReword) public onlyOwner {
+        require(_phaseEndBlockNumber > phaseEndBlockNumberArray[phaseEndBlockNumberArray.length - 1], "invalid _phaseEndBlockNumber");
+        phaseEndBlockNumberArray.push(_phaseEndBlockNumber);
+        phasePerBlockRewordArray.push(_phasePerBlockReword);
+    }
 
     function getUserInfo(uint256 _pid, address _user) public view returns (
         uint256 _amount, uint256 _rewardDebt, uint256 _rewardToClaim) {
