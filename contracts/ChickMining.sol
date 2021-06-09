@@ -51,7 +51,7 @@ contract ChickMining is OwnableContract, ReentrancyGuard, IERC721Receiver{
 
     uint256[] public phaseEndBlockNumberArray;
 
-    uint256[] public phasePerBlockRewordArray;
+    uint256[] public phasePerBlockRewardArray;
 
     uint256 public phase1StartBlockNumber;
 
@@ -85,17 +85,17 @@ contract ChickMining is OwnableContract, ReentrancyGuard, IERC721Receiver{
         phaseEndBlockNumberArray[3] = phaseEndBlockNumberArray[2].add(blockCountPerDay.mul(90));
         phaseEndBlockNumberArray[4] = phaseEndBlockNumberArray[3].add(blockCountPerDay.mul(90));
 
-        phasePerBlockRewordArray = new uint256[](5);
-        phasePerBlockRewordArray[0] = 267 * 1e16;
-        phasePerBlockRewordArray[1] = 133 * 1e16;
-        phasePerBlockRewordArray[2] = 67 * 1e16;
-        phasePerBlockRewordArray[3] = 33 * 1e16;
-        phasePerBlockRewordArray[4] = 17 * 1e16;
+        phasePerBlockRewardArray = new uint256[](5);
+        phasePerBlockRewardArray[0] = 267 * 1e16;
+        phasePerBlockRewardArray[1] = 133 * 1e16;
+        phasePerBlockRewardArray[2] = 67 * 1e16;
+        phasePerBlockRewardArray[3] = 33 * 1e16;
+        phasePerBlockRewardArray[4] = 17 * 1e16;
     }
 
-    function updateBlockReword(uint256 _phaseIndex, uint256 _reward) public onlyOwner {
-        require(_phaseIndex < phasePerBlockRewordArray.length, "invalid _phaseIndex");
-        phasePerBlockRewordArray[_phaseIndex] = _reward;
+    function updateBlockReward(uint256 _phaseIndex, uint256 _reward) public onlyOwner {
+        require(_phaseIndex < phasePerBlockRewardArray.length, "invalid _phaseIndex");
+        phasePerBlockRewardArray[_phaseIndex] = _reward;
     }
 
     function updatePhaseEndBlockNumber(uint256 _phaseIndex, uint256 _endBlockNumber) public onlyOwner {
@@ -103,10 +103,10 @@ contract ChickMining is OwnableContract, ReentrancyGuard, IERC721Receiver{
         phaseEndBlockNumberArray[_phaseIndex] = _endBlockNumber;
     }
 
-    function addMiningPhase(uint256 _phaseEndBlockNumber, uint256 _phasePerBlockReword) public onlyOwner {
+    function addMiningPhase(uint256 _phaseEndBlockNumber, uint256 _phasePerBlockReward) public onlyOwner {
         require(_phaseEndBlockNumber > phaseEndBlockNumberArray[phaseEndBlockNumberArray.length - 1], "invalid _phaseEndBlockNumber");
         phaseEndBlockNumberArray.push(_phaseEndBlockNumber);
-        phasePerBlockRewordArray.push(_phasePerBlockReword);
+        phasePerBlockRewardArray.push(_phasePerBlockReward);
     }
 
     function getUserInfo(uint256 _pid, address _user) public view returns (
@@ -197,7 +197,7 @@ contract ChickMining is OwnableContract, ReentrancyGuard, IERC721Receiver{
 
         // _from  and _to between first phase :
         if( phase1StartBlockNumber <= _from && _to <= phaseEndBlockNumberArray[0]){
-            return  _to.sub(_from).mul(phasePerBlockRewordArray[0]);
+            return  _to.sub(_from).mul(phasePerBlockRewardArray[0]);
         }
 
         
@@ -205,13 +205,13 @@ contract ChickMining is OwnableContract, ReentrancyGuard, IERC721Receiver{
 
             // _from  and _to between one  phase:
             if( phaseEndBlockNumberArray[i-1] <= _from && _to <= phaseEndBlockNumberArray[i]){
-                return _to.sub(_from).mul(phasePerBlockRewordArray[i]);                
+                return _to.sub(_from).mul(phasePerBlockRewardArray[i]);                
             }
 
             // _from and _to span two  phase: 
             if(_from < phaseEndBlockNumberArray[i - 1] &&  phaseEndBlockNumberArray[i - 1] <  _to  && _to <= phaseEndBlockNumberArray[i]){
-                uint256 reword1 = phaseEndBlockNumberArray[i - 1].sub(_from).mul(phasePerBlockRewordArray[i - 1]);
-                uint256 reword2 = _to.sub(phaseEndBlockNumberArray[i - 1]).mul(phasePerBlockRewordArray[i]);
+                uint256 reword1 = phaseEndBlockNumberArray[i - 1].sub(_from).mul(phasePerBlockRewardArray[i - 1]);
+                uint256 reword2 = _to.sub(phaseEndBlockNumberArray[i - 1]).mul(phasePerBlockRewardArray[i]);
                 return  reword1.add(reword2);
             }
         } 
