@@ -7,7 +7,7 @@ contract OwnableContract {
 
     event NewAdmin(address oldAdmin, address newAdmin);
     event NewOwner(address oldOwner, address newOwner);
-    event NewPendingAdmin(address oldPendingAdmin, address newPendingAdmin);
+    event NewPendingOwner(address oldPendingOwner, address newPendingOwner);
 
     constructor() public {
         owner = msg.sender;
@@ -30,14 +30,14 @@ contract OwnableContract {
     } 
     
     function transferOwnership(address _pendingOwner) public onlyOwner {
-        emit NewPendingAdmin(pendingOwner, _pendingOwner);
+        emit NewPendingOwner(pendingOwner, _pendingOwner);
         pendingOwner = _pendingOwner;
     }
 
     function renounceOwnership() public virtual onlyOwner {
         emit NewOwner(owner, address(0));
         emit NewAdmin(admin, address(0));
-        emit NewPendingAdmin(pendingOwner, address(0));
+        emit NewPendingOwner(pendingOwner, address(0));
 
         owner = address(0);
         pendingOwner = address(0);
@@ -49,7 +49,7 @@ contract OwnableContract {
         owner = pendingOwner;
 
         address newPendingOwner = address(0);
-        emit NewPendingAdmin(pendingOwner, newPendingOwner);
+        emit NewPendingOwner(pendingOwner, newPendingOwner);
         pendingOwner = newPendingOwner;
     }    
     
