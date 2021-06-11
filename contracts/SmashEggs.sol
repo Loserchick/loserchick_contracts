@@ -34,7 +34,7 @@ contract SmashEggs is OwnableContract{
 
     mapping(uint256 => bool) public shriekingChickSection;
 
-    mapping(uint256 => bool) private sectionHasCreatedShriekingChick;
+    mapping(uint256 => bool) public sectionHasCreatedShriekingChick;
 
     mapping(address => uint256) private loserFailCount;
 
@@ -156,6 +156,7 @@ contract SmashEggs is OwnableContract{
 
         if(shouldGenerateShriekingChick(sectionIndex)){
             index = SHRIEKING_CHICK_INDEX;
+            sectionHasCreatedShriekingChick[sectionIndex] = true;
         }else{
             uint256 startIndex = shriekingChickSection[sectionIndex]? 1: 0;
             for(uint256 i=startIndex; i<chickProbability.length; i++){
