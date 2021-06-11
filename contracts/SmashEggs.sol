@@ -156,12 +156,13 @@ contract SmashEggs is OwnableContract{
 
         if(shouldGenerateShriekingChick(sectionIndex)){
             index = SHRIEKING_CHICK_INDEX;
-        }
-        uint256 startIndex = shriekingChickSection[sectionIndex]? 1: 0;
-        for(uint256 i=startIndex; i<chickProbability.length; i++){
-            if(random > chickProbability[i]){
-                index = i;
-                break;
+        }else{
+            uint256 startIndex = shriekingChickSection[sectionIndex]? 1: 0;
+            for(uint256 i=startIndex; i<chickProbability.length; i++){
+                if(random > chickProbability[i]){
+                    index = i;
+                    break;
+                }
             }
         }
 
