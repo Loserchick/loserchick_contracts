@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./OwnableContract.sol";
 import "./RandomInterface.sol";
 
-contract LoserChickNFT is OwnableContract, ERC721("ShriekingChick", "ShriekingChick"){
+contract LoserChickNFT is OwnableContract, ERC721("TrumpChick", "TrumpChick"){
 
     using Counters for Counters.Counter;
 
@@ -25,7 +25,7 @@ contract LoserChickNFT is OwnableContract, ERC721("ShriekingChick", "ShriekingCh
         uint256 bodyOrnaments;
     }
 
-    uint256 public maxSupply;
+    uint256 public immutable maxSupply;
 
     uint256 private seed;
 
@@ -49,7 +49,7 @@ contract LoserChickNFT is OwnableContract, ERC721("ShriekingChick", "ShriekingCh
     // Shrieking Chick、 Lucky Chick、Labor Chick、BOSS Chick、Trump Chick
     constructor(uint256 _maxSupply, address _randomAddr) public{
        maxSupply = _maxSupply;
-       randomAddr = _randomAddr
+       randomAddr = _randomAddr;
     }
 
     function getTokenIdChickAttribute(uint256 tokenId) public view returns(ChickAttribute memory){

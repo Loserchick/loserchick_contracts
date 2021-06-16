@@ -16,8 +16,6 @@ contract ChickMining is OwnableContract, ReentrancyGuard, IERC721Receiver{
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.UintSet;
 
-    uint public constant busdBaseUnit = 1e18;
-
     // Info of each user.
     struct UserInfo {
         uint256 amount;     // How many LP tokens the user has provided.
@@ -78,19 +76,23 @@ contract ChickMining is OwnableContract, ReentrancyGuard, IERC721Receiver{
 
         phase1StartBlockNumber = _mining_start_block;
 
-        phaseEndBlockNumberArray = new uint256[](5);
+        phaseEndBlockNumberArray = new uint256[](7);
         phaseEndBlockNumberArray[0] = phase1StartBlockNumber.add(blockCountPerDay.mul(14));
-        phaseEndBlockNumberArray[1] = phaseEndBlockNumberArray[0].add(blockCountPerDay.mul(90));
-        phaseEndBlockNumberArray[2] = phaseEndBlockNumberArray[1].add(blockCountPerDay.mul(90));
+        phaseEndBlockNumberArray[1] = phaseEndBlockNumberArray[0].add(blockCountPerDay.mul(14));
+        phaseEndBlockNumberArray[2] = phaseEndBlockNumberArray[1].add(blockCountPerDay.mul(14));
         phaseEndBlockNumberArray[3] = phaseEndBlockNumberArray[2].add(blockCountPerDay.mul(90));
         phaseEndBlockNumberArray[4] = phaseEndBlockNumberArray[3].add(blockCountPerDay.mul(90));
+        phaseEndBlockNumberArray[5] = phaseEndBlockNumberArray[4].add(blockCountPerDay.mul(90));
+        phaseEndBlockNumberArray[6] = phaseEndBlockNumberArray[5].add(blockCountPerDay.mul(90));
 
-        phasePerBlockRewardArray = new uint256[](5);
-        phasePerBlockRewardArray[0] = 267 * 1e16;
-        phasePerBlockRewardArray[1] = 133 * 1e16;
-        phasePerBlockRewardArray[2] = 67 * 1e16;
-        phasePerBlockRewardArray[3] = 33 * 1e16;
-        phasePerBlockRewardArray[4] = 17 * 1e16;
+        phasePerBlockRewardArray = new uint256[](7);
+        phasePerBlockRewardArray[0] = 576 * 1e16;
+        phasePerBlockRewardArray[1] = 288 * 1e16;
+        phasePerBlockRewardArray[2] = 144 * 1e16;
+        phasePerBlockRewardArray[3] = 72 * 1e16;
+        phasePerBlockRewardArray[4] = 36 * 1e16;
+        phasePerBlockRewardArray[5] = 18 * 1e16;
+        phasePerBlockRewardArray[6] = 9 * 1e16;
     }
 
     function updateBlockReward(uint256 _phaseIndex, uint256 _reward) public onlyOwner {

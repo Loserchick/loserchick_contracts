@@ -1,11 +1,15 @@
 pragma solidity 0.6.6;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "./OwnableContract.sol";
+import "./ChickToken.sol";
 
 contract EggToken is ERC20("EGG", "EGG"), OwnableContract{
 
-    uint256 public MAX_TOTAL_SUPPLY  = 1333333 * 1e18;
+    using SafeMath for uint256;
+
+    uint256 public constant MAX_TOTAL_SUPPLY  = 1333333 * 1e18;
 
     uint256 public dayIndex = 0;
 
@@ -24,15 +28,37 @@ contract EggToken is ERC20("EGG", "EGG"), OwnableContract{
     
     mapping(uint256 => uint256) public marketClaimCountPerDay; // Maximum market per day.
 
-    mapping(uint256 => uint256) public burnAmountPerDay; 
+    mapping(uint256 => uint256) public burnAmountPerDay;
+
+    uint256[4] public cChickSwapChickLimit;
+
+    uint256[4] public ceggSwapEggProportion;
+
+    mapping(address => uint256) public addUpSwapCeggCountPerUser;
+
+    ChickToken public chickToken;
 
     event Claim(uint256 orderId, uint256 amount, address userAddress, address signer);
     event Burn(address userAddress, uint256 amount);
 
-    constructor() public {
+    constructor(address _chickAddr) public {
+        chickToken = ChickToken(_chickAddr);
+
         _setupDecimals(18);
         perUserPerDayLimit = 100;
         marketPerDayLimit = 100000;
+
+        cChickSwapChickLimit[0] = 10;
+        cChickSwapChickLimit[1] = 20;
+        cChickSwapChickLimit[2] = 100;
+        cChickSwapChickLimit[3] = 115792089237316195423570985008687907853269984665640564039457584007913129639935;
+
+        ceggSwapEggProportion[0] = 5; // special case : if  addUpSwapCchickCountPerUser[userAddr] <=10 , the max EGG count is 5 
+        
+        //  maxEggAmount = chickCount.mul(ceggSwapEggProportion[index]).div(100);
+        ceggSwapEggProportion[1] = 50; 
+        ceggSwapEggProportion[2] = 30;
+        ceggSwapEggProportion[3] = 20;
     }
 
     function setDev1(address _signer) public onlyOwner {
@@ -63,11 +89,36 @@ contract EggToken is ERC20("EGG", "EGG"), OwnableContract{
         return MAX_TOTAL_SUPPLY.div(1e18).sub(addUpClaimCount);
     }
 
+    function updateCeggSwapEggProportion(uint256 index, uint256 proportion) public onlyOwner{
+        require(index < 4, 'Index cannot be greater than 4 !');
+        ceggSwapEggProportion[index] = proportion;
+    }
+
+    // check to avoid bad base, such as centralized db changed by hacker  
+    function checkRestrictions(uint256 userAddUpCchickCount, uint256 userAddUpClaimEggCount) internal view returns(bool){
+        require(userAddUpClaimEggCount <= userAddUpCchickCount, 'error: userAddUpClaimEggCount > userAddUpCchickCount');
+        uint256 index = 0;
+        for(uint256 i = 0; i<cChickSwapChickLimit.length; i++){
+            if(userAddUpCchickCount <= cChickSwapChickLimit[i]){
+                index = i;
+                break;
+            }
+        }
+        uint256 maxEggAmount;
+        if(index == 0){
+            maxEggAmount == ceggSwapEggProportion[0];
+        }else{
+            maxEggAmount = userAddUpCchickCount.mul(ceggSwapEggProportion[index]).div(100);
+        }
+
+        require(maxEggAmount >=  userAddUpClaimEggCount, 'error: maxEggAmount <  userAddUpClaimEggCount');
+    }
+
     function claim(uint256 orderId, uint256 floatAmount, bytes memory signature) public returns(address){
         require(claimedOrderId[orderId] == false, "already claimed");
         updateDay();
-        require(userClaimCountPerDay[dayIndex][msg.sender] + floatAmount <= perUserPerDayLimit, 'Maximum single day limit exceeded！');
-        require(marketClaimCountPerDay[dayIndex] + floatAmount <= marketPerDayLimit, 'It has exceeded the maximum market quota！');
+        require(userClaimCountPerDay[dayIndex][msg.sender].add(floatAmount) <= perUserPerDayLimit, 'Maximum single day limit exceeded！');
+        require(marketClaimCountPerDay[dayIndex].add(floatAmount) <= marketPerDayLimit, 'It has exceeded the maximum market quota！');
 
         bytes32 hash1 = keccak256(abi.encode(address(this), msg.sender, orderId, floatAmount));
 
@@ -76,19 +127,23 @@ contract EggToken is ERC20("EGG", "EGG"), OwnableContract{
         address signer = recover(hash2, signature);
         require(signer == signer1 || signer == signer2, "invalid signer");
 
+        uint256 userAddUpcChickCount = chickToken.getAddUpSwapCchickCountPerUser(msg.sender);
+        uint256 useAddUpClaimEggCount = floatAmount.add(addUpSwapCeggCountPerUser[msg.sender]);
+        checkRestrictions(userAddUpcChickCount, useAddUpClaimEggCount);
+
         mint(msg.sender, floatAmount);
 
         claimedOrderId[orderId] = true;
-        userClaimCountPerDay[dayIndex][msg.sender] += floatAmount;
-        marketClaimCountPerDay[dayIndex] += floatAmount;
-
-        addUpClaimCount += floatAmount;
+        userClaimCountPerDay[dayIndex][msg.sender] = floatAmount.add(userClaimCountPerDay[dayIndex][msg.sender]);
+        marketClaimCountPerDay[dayIndex] = floatAmount.add(marketClaimCountPerDay[dayIndex]);
+        addUpSwapCeggCountPerUser[msg.sender] = useAddUpClaimEggCount;
+        addUpClaimCount = floatAmount.add(addUpClaimCount);
 
         emit Claim(orderId, floatAmount, msg.sender, signer);
     }
 
     function mint(address _to, uint256 _amount) internal{
-        uint256 intAmount = _amount * 1e18;
+        uint256 intAmount = _amount.mul(1e18);
         uint256 totalSupply = totalSupply();
         if(totalSupply ==  MAX_TOTAL_SUPPLY){
             return;
@@ -104,7 +159,7 @@ contract EggToken is ERC20("EGG", "EGG"), OwnableContract{
         require(amount != 0, 'burnAmount cannot be zero');
         
         address deadAddress = 0x000000000000000000000000000000000000dEaD;
-        transfer(deadAddress, amount * 1e18);
+        transfer(deadAddress, amount.mul(1e18));
         emit Burn(msg.sender, amount);
 
         addUpBurnCount += amount;
